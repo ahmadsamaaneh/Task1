@@ -1,19 +1,28 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const userRoutes = require('./routes/user.routes');
+
+const userRoutes = require('./routes/userRoutes'); 
+const { protect } = require('./middlewares/authMiddleware');
 
 dotenv.config();
 const app = express();
 
-
 app.use(express.json());
-
 
 app.use('/api/users', userRoutes);
 
 app.get('/', (req, res) => {
-    res.send('API is working ');
+    res.status(200).json({ message: 'API is working and secure!' });
+});
+
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+        status: 'error',
+        message: err.message || 'Internal Server Error',
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
 });
 
 const startServer = async () => {

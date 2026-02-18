@@ -1,16 +1,23 @@
-const express = require("express");
-const app = express();
+const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const userRoutes = require('./routes/userRoutes');
 
+dotenv.config();
+const app = express();
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("API is working 🚀");
+// Routes
+app.use('/api/v1/users', userRoutes);
+
+// Centralized Error Handler
+app.use((err, req, res, next) => {
+    res.status(err.status || 500).json({
+        message: err.message || 'Internal Server Error'
+    });
 });
 
-const userRoutes = require("./routes/user.routes");
-app.use("/api/users", userRoutes);
-
-const errorHandler = require("./middlewares/error.middleware");
-app.use(errorHandler);
-
-module.exports = app;
+mongoose.connect(process.env.MONGO_URI).then(() => {
+    console.log('DB Connected!');
+    app.listen(process.env.PORT, () => console.log('Server running...'));
+});
